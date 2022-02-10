@@ -236,6 +236,91 @@ public class BoardManager : MonoBehaviour
             List<int> places = new List<int>{ 0, 1, 2, 3, 4, 5, 6, 7 };
 
             // Rooks
+            // Rooks
+            int maxNum = 7;
+            int index = rand.Next(0, maxNum);
+            maxNum--;
+            int rook1Place = places[index];
+            places.RemoveAt(index);
+            SpawnChessman(2, rook1Place, 0, true);
+            index = rand.Next(0, maxNum);
+            maxNum--;
+            int rook2Place = places[index];
+            places.RemoveAt(index);
+            SpawnChessman(2, rook2Place, 0, true);
+
+            // King
+            int kingPlace;
+            do
+            {
+                index = rand.Next(0, maxNum);
+                kingPlace = places[index];
+            } while ((kingPlace > rook1Place && kingPlace < rook2Place) || (kingPlace < rook1Place && kingPlace > rook2Place));
+            maxNum--;
+            places.RemoveAt(index);
+            SpawnChessman(0, kingPlace, 0, true);
+
+            // Bishops
+            index = rand.Next(0, maxNum);
+            maxNum--;
+            int bishop1Place = places[index];
+            places.RemoveAt(index);
+            bool bishop1Even = false;
+            if (bishop1Place % 2 == 0) bishop1Even = true;
+            SpawnChessman(3, bishop1Place, 0, true);
+            int bishop2Place;
+            do
+            {
+                index = rand.Next(0, maxNum);
+                bishop2Place = places[index];
+            } while (!((bishop2Place % 2 == 0) == bishop1Even));
+            maxNum--;
+            places.RemoveAt(index);
+            SpawnChessman(3, bishop2Place, 0, true);
+
+            // Queen
+            index = rand.Next(0, maxNum);
+            maxNum--;
+            int queenPlace = places[index];
+            places.RemoveAt(index);
+            SpawnChessman(1, queenPlace, 0, true);
+
+            // Knights
+            index = rand.Next(0, maxNum);
+            maxNum--;
+            int knight1Place = places[index];
+            places.RemoveAt(index);
+            SpawnChessman(4, knight1Place, 0, true);
+            index = rand.Next(0, maxNum);
+            maxNum--;
+            int knight2Place = places[index];
+            places.RemoveAt(index);
+            SpawnChessman(4, knight2Place, 0, true);
+
+            /////// Black ///////
+
+            // Rooks
+            SpawnChessman(8, rook1Place, 7, false);
+            SpawnChessman(8, rook2Place, 7, false);
+
+            // King
+            SpawnChessman(6, kingPlace, 7, false);
+
+            // Bishop
+            SpawnChessman(9, bishop1Place, 7, false);
+            SpawnChessman(9, bishop2Place, 7, false);
+
+            // Queen
+            SpawnChessman(7, queenPlace, 7, false);
+
+            // Knights
+            SpawnChessman(10, knight1Place, 7, false);
+            SpawnChessman(10, knight2Place, 7, false);
+
+        }
+        else
+        {
+            // Rooks
             SpawnChessman(2, 0, 0, true);
             SpawnChessman(2, 7, 0, true);
 
@@ -262,9 +347,9 @@ public class BoardManager : MonoBehaviour
             // King
             SpawnChessman(6, 4, 7, false);
 
-            // Rooks
-            SpawnChessman(8, 0, 7, false);
-            SpawnChessman(8, 7, 7, false);
+            // Bishop
+            SpawnChessman(9, 0, 7, false);
+            SpawnChessman(9, 7, 7, false);
 
             // Queen
             SpawnChessman(7, 3, 7, false);
@@ -272,11 +357,6 @@ public class BoardManager : MonoBehaviour
             // Knights
             SpawnChessman(10, 1, 7, false);
             SpawnChessman(10, 6, 7, false);
-
-        }
-        else
-        {
-
         }
 
         //White Pawns
