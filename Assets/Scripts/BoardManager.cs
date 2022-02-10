@@ -32,7 +32,8 @@ public class BoardManager : MonoBehaviour
     public int[] EnPassantMove { set; get; }
 
     public bool playChess960 = true;
-    public bool placePieces = true;
+    public bool placePieces = false;
+    public bool piecesPlaced = false;
     public GameObject mainMenuScreen;
 
     // Use this for initialization
@@ -40,7 +41,6 @@ public class BoardManager : MonoBehaviour
     {
         Instance = this;
         EnPassantMove = new int[2] { -1, -1 };
-        Time.timeScale = 0;
     }
 
     // Update is called once per frame
@@ -49,6 +49,7 @@ public class BoardManager : MonoBehaviour
         if(placePieces)
         {
             placePieces = false;
+            piecesPlaced = true;
             SpawnAllChessmans();
         }
 
@@ -77,35 +78,38 @@ public class BoardManager : MonoBehaviour
 
     private void SelectChessman(int x, int y)
     {
-        if (Chessmans[x, y] == null) return;
-
-        if (Chessmans[x, y].isWhite != isWhiteTurn) return;
-
-        bool hasAtLeastOneMove = false;
-
-        allowedMoves = Chessmans[x, y].PossibleMoves();
-        for (int i = 0; i < 8; i++)
+        if(piecesPlaced)
         {
-            for (int j = 0; j < 8; j++)
+            if (Chessmans[x, y] == null) return;
+
+            if (Chessmans[x, y].isWhite != isWhiteTurn) return;
+
+            bool hasAtLeastOneMove = false;
+
+            allowedMoves = Chessmans[x, y].PossibleMoves();
+            for (int i = 0; i < 8; i++)
             {
-                if (allowedMoves[i, j])
+                for (int j = 0; j < 8; j++)
                 {
-                    hasAtLeastOneMove = true;
-                    i = 8;
-                    break;
+                    if (allowedMoves[i, j])
+                    {
+                        hasAtLeastOneMove = true;
+                        i = 8;
+                        break;
+                    }
                 }
             }
+
+            if (!hasAtLeastOneMove)
+                return;
+
+            selectedChessman = Chessmans[x, y];
+            previousMat = selectedChessman.GetComponent<MeshRenderer>().material;
+            selectedMat.mainTexture = previousMat.mainTexture;
+            selectedChessman.GetComponent<MeshRenderer>().material = selectedMat;
+
+            BoardHighlights.Instance.HighLightAllowedMoves(allowedMoves);
         }
-
-        if (!hasAtLeastOneMove)
-            return;
-
-        selectedChessman = Chessmans[x, y];
-        previousMat = selectedChessman.GetComponent<MeshRenderer>().material;
-        selectedMat.mainTexture = previousMat.mainTexture;
-        selectedChessman.GetComponent<MeshRenderer>().material = selectedMat;
-
-        BoardHighlights.Instance.HighLightAllowedMoves(allowedMoves);
     }
 
     private void MoveChessman(int x, int y)
@@ -228,7 +232,7 @@ public class BoardManager : MonoBehaviour
         Chessmans = new Chessman[8, 8];
 
 
-        if(!playChess960)
+        if(playChess960)
         {
             System.Random rand = new System.Random();
             /////// White ///////
@@ -236,16 +240,19 @@ public class BoardManager : MonoBehaviour
             List<int> places = new List<int>{ 0, 1, 2, 3, 4, 5, 6, 7 };
 
             // Rooks
-            // Rooks
             int maxNum = 7;
             int index = rand.Next(0, maxNum);
-            maxNum--;
             int rook1Place = places[index];
+            maxNum--;
             places.RemoveAt(index);
             SpawnChessman(2, rook1Place, 0, true);
-            index = rand.Next(0, maxNum);
+            int rook2Place;
+            do
+            {
+                index = rand.Next(0, maxNum);
+                rook2Place = places[index];
+            } while (rook2Place + 1 != rook1Place || rook2Place - 1 != rook1Place);
             maxNum--;
-            int rook2Place = places[index];
             places.RemoveAt(index);
             SpawnChessman(2, rook2Place, 0, true);
 
@@ -273,26 +280,25 @@ public class BoardManager : MonoBehaviour
             {
                 index = rand.Next(0, maxNum);
                 bishop2Place = places[index];
-            } while (!((bishop2Place % 2 == 0) == bishop1Even));
+            } while ((bishop2Place % 2 == 0) == bishop1Even);
             maxNum--;
             places.RemoveAt(index);
             SpawnChessman(3, bishop2Place, 0, true);
 
             // Queen
             index = rand.Next(0, maxNum);
-            maxNum--;
             int queenPlace = places[index];
+            maxNum--;
             places.RemoveAt(index);
             SpawnChessman(1, queenPlace, 0, true);
 
             // Knights
             index = rand.Next(0, maxNum);
-            maxNum--;
             int knight1Place = places[index];
+            maxNum--;
             places.RemoveAt(index);
             SpawnChessman(4, knight1Place, 0, true);
             index = rand.Next(0, maxNum);
-            maxNum--;
             int knight2Place = places[index];
             places.RemoveAt(index);
             SpawnChessman(4, knight2Place, 0, true);
@@ -348,8 +354,8 @@ public class BoardManager : MonoBehaviour
             SpawnChessman(6, 4, 7, false);
 
             // Bishop
-            SpawnChessman(9, 0, 7, false);
-            SpawnChessman(9, 7, 7, false);
+            SpawnChessman(9, 2, 7, false);
+            SpawnChessman(9, 5, 7, false);
 
             // Queen
             SpawnChessman(7, 3, 7, false);
@@ -394,6 +400,12 @@ public class BoardManager : MonoBehaviour
         if (EventSystem.current.currentSelectedGameObject.name == "RegularGame")
         {
             playChess960 = false;
+            placePieces = true;
+        }
+        else if(EventSystem.current.currentSelectedGameObject.name == "Chess960")
+        {
+            playChess960 = true;
+            placePieces = true;
         }
         mainMenuScreen.SetActive(false);
     }
