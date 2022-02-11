@@ -251,18 +251,27 @@ public class BoardManager : MonoBehaviour
             {
                 index = rand.Next(0, maxNum);
                 rook2Place = places[index];
-            } while (rook2Place + 1 != rook1Place || rook2Place - 1 != rook1Place);
+            } while (rook2Place + 1 == rook1Place || rook2Place - 1 == rook1Place);
             maxNum--;
             places.RemoveAt(index);
             SpawnChessman(2, rook2Place, 0, true);
 
             // King
+            bool placeKing = false;
             int kingPlace;
             do
             {
                 index = rand.Next(0, maxNum);
                 kingPlace = places[index];
-            } while ((kingPlace > rook1Place && kingPlace < rook2Place) || (kingPlace < rook1Place && kingPlace > rook2Place));
+                if(kingPlace > rook1Place && kingPlace < rook2Place)
+                {
+                    placeKing = true;
+                }
+                else if(kingPlace < rook1Place && kingPlace > rook2Place)
+                {
+                    placeKing = true;
+                }
+            } while (!placeKing);
             maxNum--;
             places.RemoveAt(index);
             SpawnChessman(0, kingPlace, 0, true);
