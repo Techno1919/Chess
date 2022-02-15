@@ -36,6 +36,17 @@ public class BoardManager : MonoBehaviour
     public bool piecesPlaced = false;
     public GameObject mainMenuScreen;
 
+    public int index = 0;
+    public int rook1Place;
+    public int rook2Place;
+    public int kingPlace;
+    public int bishop1Place;
+    public int bishop2Place;
+    public int knight1Place;
+    public int knight2Place;
+    public int queenPlace;
+    public List<int> places = new List<int> { 0, 1, 2, 3, 4, 5, 6, 7 };
+
     // Use this for initialization
     void Start()
     {
@@ -237,78 +248,61 @@ public class BoardManager : MonoBehaviour
             System.Random rand = new System.Random();
             /////// White ///////
 
-            List<int> places = new List<int>{ 0, 1, 2, 3, 4, 5, 6, 7 };
-
             // Rooks
-            int maxNum = 7;
-            int index = rand.Next(0, maxNum);
-            int rook1Place = places[index];
+            int maxNum = places.Count;
+            index = rand.Next(0, maxNum);
+            rook1Place = places[index];
             maxNum--;
             places.RemoveAt(index);
             SpawnChessman(2, rook1Place, 0, true);
-            int rook2Place;
+            bool placeSecondRook = false;
             do
             {
-                index = rand.Next(0, maxNum);
-                rook2Place = places[index];
-            } while (rook2Place + 1 == rook1Place || rook2Place - 1 == rook1Place);
+                placeSecondRook = PlaceSecondRook(rand, maxNum);
+            } while (!placeSecondRook);
             maxNum--;
-            places.RemoveAt(index);
             SpawnChessman(2, rook2Place, 0, true);
 
             // King
             bool placeKing = false;
-            int kingPlace;
             do
             {
-                index = rand.Next(0, maxNum);
-                kingPlace = places[index];
-                if(kingPlace > rook1Place && kingPlace < rook2Place)
-                {
-                    placeKing = true;
-                }
-                else if(kingPlace < rook1Place && kingPlace > rook2Place)
-                {
-                    placeKing = true;
-                }
+                placeKing = PlaceKing(rand, maxNum);
             } while (!placeKing);
             maxNum--;
-            places.RemoveAt(index);
             SpawnChessman(0, kingPlace, 0, true);
 
             // Bishops
             index = rand.Next(0, maxNum);
             maxNum--;
-            int bishop1Place = places[index];
+            bishop1Place = places[index];
             places.RemoveAt(index);
             bool bishop1Even = false;
             if (bishop1Place % 2 == 0) bishop1Even = true;
             SpawnChessman(3, bishop1Place, 0, true);
-            int bishop2Place;
+            bool placeSecondBishop;
             do
             {
-                index = rand.Next(0, maxNum);
-                bishop2Place = places[index];
-            } while ((bishop2Place % 2 == 0) == bishop1Even);
+                placeSecondBishop = PlaceBishop(rand, maxNum, bishop1Even);
+            } while (!placeSecondBishop);
             maxNum--;
-            places.RemoveAt(index);
             SpawnChessman(3, bishop2Place, 0, true);
 
             // Queen
             index = rand.Next(0, maxNum);
-            int queenPlace = places[index];
+            queenPlace = places[index];
             maxNum--;
             places.RemoveAt(index);
             SpawnChessman(1, queenPlace, 0, true);
 
             // Knights
             index = rand.Next(0, maxNum);
-            int knight1Place = places[index];
+            knight1Place = places[index];
             maxNum--;
             places.RemoveAt(index);
             SpawnChessman(4, knight1Place, 0, true);
             index = rand.Next(0, maxNum);
-            int knight2Place = places[index];
+            knight2Place = places[index];
             places.RemoveAt(index);
             SpawnChessman(4, knight2Place, 0, true);
 
@@ -419,6 +413,343 @@ public class BoardManager : MonoBehaviour
         mainMenuScreen.SetActive(false);
     }
 
+    public bool PlaceSecondRook(System.Random rand, int maxNum)
+    {
+        index = rand.Next(0, maxNum);
+        rook2Place = places[index];
+        if(!(rook2Place + 1 == rook1Place) && !(rook2Place - 1 == rook1Place))
+        {
+            places.RemoveAt(index);
+            return true;
+        }
+        return false;
+    }
+
+    public bool PlaceKing(System.Random rand, int maxNum)
+    {
+        index = rand.Next(0, maxNum);
+        kingPlace = places[index];
+        if (kingPlace > rook1Place && kingPlace < rook2Place)
+        {
+            places.RemoveAt(index);
+            return true;
+
+        }
+        else if (kingPlace < rook1Place && kingPlace > rook2Place)
+        {
+            places.RemoveAt(index);
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool PlaceBishop(System.Random rand, int maxNum, bool bishop1Even)
+    {
+        index = rand.Next(0, maxNum);
+        bishop2Place = places[index];
+        if(!((bishop2Place % 2 == 0) == bishop1Even))
+        {
+            places.RemoveAt(index);
+            return true;
+        }
+
+        return false;
+    }
+
+
+
+    //Checks to make sure the rooks are not placed next to each other
+    public void TestRook()
+    {
+        bool firstRook = true;
+        int rook1Pos = -1;
+        int rook2Pos = -1;
+        for(int i = 0; i < 7; i++)
+        {
+            if(Chessmans[i, 0].name.Substring(6, 4) == "Rook")
+            {
+                if(firstRook)
+                {
+                    rook1Pos = i;
+                    firstRook = false;
+                }
+                else
+                {
+                    rook2Pos = i;
+                }
+            }
+        }
+        if(rook1Pos-1 == rook2Pos && rook1Pos+1 == rook2Pos)
+        {
+            Debug.Log("Test Failed: Rooks should not be next to each other");
+        }
+        else
+        {
+            Debug.Log("Test Passed: Rooks are seperated");
+        }
+    }
+
+    //Checks if the king is in between the rooks
+    public void TestKing()
+    {
+        bool firstRook = true;
+        int rook1Pos = -1;
+        int rook2Pos = -1;
+        int kingPos = -1;
+        for (int i = 0; i < 7; i++)
+        {
+            if (Chessmans[i, 0].name.Substring(6, 4) == "Rook")
+            {
+                if (firstRook)
+                {
+                    rook1Pos = i;
+                    firstRook = false;
+                }
+                else
+                {
+                    rook2Pos = i;
+                }
+            }
+            else if(Chessmans[i, 0].name.Substring(6, 4) == "King")
+            {
+                kingPos = i;
+            }
+        }
+        if(!(kingPos > rook1Pos && kingPos < rook2Pos))
+        {
+            Debug.Log("Test Passed: King is in between the rooks");
+        }
+        else if(!(kingPos > rook2Pos && kingPos < rook1Pos))
+        {
+            Debug.Log("Test Passed: King is in between the rooks");
+        }
+        else
+        {
+            Debug.Log("Test Failed: King needs to be between the rooks");
+        }
+
+    }
+
+    //Checks if the bishops are on opposite colored tiles 
+    public void TestBishops()
+    {
+        bool firstBishop = true;
+        int bishop1Pos = -1;
+        int bishop2Pos = -1;
+        for (int i = 0; i < 7; i++)
+        {
+            if (Chessmans[i, 0].name.Substring(6, 6) == "Bishop")
+            {
+                if (firstBishop)
+                {
+                    bishop1Pos = i;
+                    firstBishop = false;
+                }
+                else
+                {
+                    bishop2Pos = i;
+                }
+            }
+        }
+        if((bishop1Pos % 2 == 0) == (bishop2Pos % 2 == 0))
+        {
+            Debug.Log("Test Failed: Bishops need to be on different colored tiles");
+        }
+        else
+        {
+            Debug.Log("Test Passed: Bishops are on different colored tiles");
+        }
+    }
+
+    //Checks if the board is mirrored
+    public void TestBoardsIsMirrored()
+    {
+        bool firstBishop = true;
+        int bishop1Pos = -1;
+        int bishop2Pos = -1;
+        bool firstRook = true;
+        int rook1Pos = -1;
+        int rook2Pos = -1;
+        bool firstKnight = true;
+        int knigt1Pos = -1;
+        int knigt2Pos = -1;
+        int queenPos = -1;
+        int kingPos = -1;
+        for (int i = 0; i < 8; i++)
+        {
+            
+            if (Chessmans[i, 0].name.Substring(6, 4) == "Rook")
+            {
+                if (firstRook)
+                {
+                    rook1Pos = i;
+                    firstRook = false;
+                }
+                else
+                {
+                    rook2Pos = i;
+                }
+            }
+            else if (Chessmans[i, 0].name.Substring(6, 4) == "King")
+            {
+                kingPos = i;
+            }
+            else if (Chessmans[i, 0].name.Substring(6, 6) == "Knight")
+            {
+                if (firstKnight)
+                {
+                    knigt1Pos = i;
+                    firstKnight = false;
+                }
+                else
+                {
+                    knigt2Pos = i;
+                }
+            }
+            else if (Chessmans[i, 0].name.Substring(6, 5) == "Queen")
+            {
+                queenPos = i;
+            }
+            else if (Chessmans[i, 0].name.Substring(6, 6) == "Bishop")
+            {
+                
+                if (firstBishop)
+                {
+                    bishop1Pos = i;
+                    firstBishop = false;
+                }
+                else
+                {
+                    bishop2Pos = i;
+                }
+            }
+        }
+        
+        if(Chessmans[bishop1Pos, 0].name.Substring(6, 6) == Chessmans[bishop1Pos, 7].name.Substring(6, 6))
+        {
+            if(Chessmans[bishop2Pos, 0].name.Substring(6, 6) == Chessmans[bishop2Pos, 7].name.Substring(6, 6))
+            {
+                if (Chessmans[rook1Pos, 0].name.Substring(6, 4) == Chessmans[rook1Pos, 7].name.Substring(6, 4))
+                {
+                    if (Chessmans[rook2Pos, 0].name.Substring(6, 4) == Chessmans[rook2Pos, 7].name.Substring(6, 4))
+                    {
+                        if (Chessmans[knigt1Pos, 0].name.Substring(6, 6) == Chessmans[knigt1Pos, 7].name.Substring(6, 6))
+                        {
+                            if (Chessmans[knigt2Pos, 0].name.Substring(6, 6) == Chessmans[knigt2Pos, 7].name.Substring(6, 6))
+                            {
+                                if (Chessmans[queenPos, 0].name.Substring(6, 5) == Chessmans[queenPos, 7].name.Substring(6, 5))
+                                {
+                                    if (Chessmans[kingPos, 0].name.Substring(6, 4) == Chessmans[kingPos, 7].name.Substring(6, 4))
+                                    {
+                                        Debug.Log("Test Passed: Board is correctly mirrored");
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Debug.Log("Test Failed: Board is not mirrored");
+    }
+
+    //Checks to see if the pieces for a regular chess
+    //game are place properly
+    public void TestRegularChess()
+    {
+        bool firstBishop = true;
+        int bishop1Pos = -1;
+        int bishop2Pos = -1;
+        bool firstRook = true;
+        int rook1Pos = -1;
+        int rook2Pos = -1;
+        bool firstKnight = true;
+        int knigt1Pos = -1;
+        int knigt2Pos = -1;
+        int queenPos = -1;
+        int kingPos = -1;
+        for (int i = 0; i < 8; i++)
+        {
+
+            if (Chessmans[i, 0].name.Substring(6, 4) == "Rook")
+            {
+                if (firstRook)
+                {
+                    rook1Pos = i;
+                    firstRook = false;
+                }
+                else
+                {
+                    rook2Pos = i;
+                }
+            }
+            else if (Chessmans[i, 0].name.Substring(6, 4) == "King")
+            {
+                kingPos = i;
+            }
+            else if (Chessmans[i, 0].name.Substring(6, 6) == "Knight")
+            {
+                if (firstKnight)
+                {
+                    knigt1Pos = i;
+                    firstKnight = false;
+                }
+                else
+                {
+                    knigt2Pos = i;
+                }
+            }
+            else if (Chessmans[i, 0].name.Substring(6, 5) == "Queen")
+            {
+                queenPos = i;
+            }
+            else if (Chessmans[i, 0].name.Substring(6, 6) == "Bishop")
+            {
+
+                if (firstBishop)
+                {
+                    bishop1Pos = i;
+                    firstBishop = false;
+                }
+                else
+                {
+                    bishop2Pos = i;
+                }
+            }
+        }
+
+        if(rook1Pos == 0)
+        {
+            if(knigt1Pos == 1)
+            {
+                if(bishop1Pos == 2)
+                { 
+                    if(kingPos == 3)
+                    {
+                        if(queenPos == 4)
+                        {
+                            if(bishop2Pos == 5)
+                            {
+                                if(knigt2Pos == 6)
+                                {
+                                    if(rook2Pos == 7)
+                                    {
+                                        Debug.Log("Test Passed: The Pieces are placed properly for regular chess");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            Debug.Log("Test Failed: The pieces are not placed properly for regular chess");
+        }
+    }
 }
 
 
